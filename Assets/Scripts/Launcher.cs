@@ -1,6 +1,9 @@
 using UnityEngine;
 using Photon.Pun;
 using Photon.Realtime;
+using System;
+using System.Collections;
+
 
 namespace Com.MyCompany.MyGame
 {
@@ -19,32 +22,68 @@ namespace Com.MyCompany.MyGame
 
         #endregion
 
+        #region Public Fields
+
+        [Tooltip("The Ui Panel to let the user enter name, connect and play")]
+        [SerializeField]
+        private GameObject controlPanel;
+        [Tooltip("The UI Label to inform the user that the connection is in progress")]
+        [SerializeField]
+        private GameObject progressLabel;
+
+        #endregion
+
         #region MonoBehaviour CallBacks
 
         void Awake()
         {
-            PhotonNetwork.AutomaticallySyncScene = true;    
+             
         }
 
         void Start()
         {
-            Connect();
+           //Connect();
+           progressLabel.SetActive(false);
+           controlPanel.SetActive(true);
+           
         }
 
         #endregion
 
         #region Public Methods
 
+        public void ButtonConnect()
+        {
+            StartCoroutine(MainLoof());
+        }
+       
+       IEnumerator MainLoof()
+       {
+           yield return new WaitForSeconds(5);
+
+
+            Connect();
+
+           yield return null;
+       }
+
+
+       
+
         public void Connect()
         {
+            progressLabel.SetActive(true);
+            controlPanel.SetActive(false);
             if (PhotonNetwork.IsConnected)
             {
                 PhotonNetwork.JoinRandomRoom();
             }
             else
             {
+                PhotonNetwork.AutomaticallySyncScene = true;   
                 PhotonNetwork.GameVersion = gameVersion;
                 PhotonNetwork.ConnectUsingSettings();
+              
             }
         }
 
@@ -56,6 +95,7 @@ namespace Com.MyCompany.MyGame
         {
             Debug.Log("PUN Basics Tutorial/Launcher: OnConnectedToMaster() was called by PUN");
             PhotonNetwork.JoinRandomRoom();    
+            Debug.Log("접속!!");
         }
         
         public override void OnJoinRandomFailed(short returnCode, string message)
@@ -72,6 +112,8 @@ namespace Com.MyCompany.MyGame
 
         public override void OnDisconnected(DisconnectCause cause)
         {
+            progressLabel.SetActive(false);
+            controlPanel.SetActive(true);
             Debug.LogWarningFormat("PUN Basics Tutorial/Launcher: OnDisconnected() was called by PUN with reason {0}", cause);
         }
 
