@@ -35,12 +35,21 @@ namespace Com.MyCompany.MyGame
 
         [Tooltip("The current Health of our player")]
         public float Health = 1f;
+
+        [Tooltip("The local player instance. Use this to know if the local player is represented in the Scene")]
+        public static GameObject LocalPlayerInstance;
         #endregion
 
         #region MonoBehaviour CallBacks
         // Start is called before the first frame update
         void Awake()
         {
+            if(photonView.IsMine)
+            {
+                PlayerManager.LocalPlayerInstance = this.gameObject;
+            }
+
+            DontDestroyOnLoad(this.gameObject);
             if (beams == null)
             {
                 Debug.LogError("<Color=Red><a>Missing</a></Color> Beams Reference.", this);
@@ -66,6 +75,14 @@ namespace Com.MyCompany.MyGame
             {
                 Debug.LogError("<Color=Red><a>Missing</a></Color> CameraWork Component on playerPrefab.", this);
             }
+            
+            #if UNITY_5_4_OR_NEWER
+
+            UnityEngine.SceneManagement.SceneManager.sceneLoaded += (scene, loadingMode) =>
+            {
+                this.CalledOnLevelWasLoaded(scene.buildIndex);
+            };
+            #endif
         }
 
         // Update is called once per frame
@@ -111,6 +128,21 @@ namespace Com.MyCompany.MyGame
                 return;
             }
             Health -= 0.1f*Time.deltaTime;
+        }
+
+        #if !UNITY_5_4_OR_NEWER
+        void OnLevelWasLoad(int level)
+        {
+            this.CalledOnLevelWasLoaded(level);
+        }
+        #endif
+
+        void CalledOnLevelWasLoaded(int level)
+        {
+            if(!Physics.Raycast(transform.position, -Vector3.up, 5f))
+            {
+                transform.position = new Vector3(0f,5f,0f);
+            }
         }
         #endregion
 
